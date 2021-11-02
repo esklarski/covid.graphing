@@ -37,6 +37,11 @@ public class Graph : MonoBehaviour
     private float chartHeight;
 
     /// <summary>
+    /// Scale to keep chart width constant as dataset grows
+    /// </summary>
+    private float horizontalModifier;
+
+    /// <summary>
     /// Array for date lookup.
     /// </summary>
     private string[] days;
@@ -79,6 +84,11 @@ public class Graph : MonoBehaviour
 
         CreateProvinceDictionary(entries);
         CreateProvincialNodes();
+
+        // set data ready here?
+        dataReady = true;
+
+        // move into update, trigger with dataReady
         DrawPlots();
     }
 
@@ -118,19 +128,10 @@ public class Graph : MonoBehaviour
     {
         List<Entry> dailyEntries;
 
-        SetChartHeight();
+        SetChartDimensions();
 
         for (int i = 0; i < days.Count(); i++)
         {
-            // if (settings.excludeCanada)
-            // {
-            //     dailyEntries = provincial.Select(x => x.Value).Where(x => x.name != "Canada").SelectMany(y => y.points).Where(z => z.dateString == days[i]).ToList();
-            // }
-            // else 
-            // {
-            //     dailyEntries = provincial.Select(x => x.Value).SelectMany(y => y.points).Where(z => z.dateString == days[i]).ToList();
-            // }
-
             dailyEntries = (settings.excludeCanada)
                          ? provincial.Select(x => x.Value).Where(x => x.name != "Canada").SelectMany(y => y.points).Where(z => z.dateString == days[i]).ToList()
                          : provincial.Select(x => x.Value).SelectMany(y => y.points).Where(z => z.dateString == days[i]).ToList();
@@ -147,8 +148,8 @@ public class Graph : MonoBehaviour
     /// Draws points for the given day.
     /// </summary>
     /// <param name="dayEntries">List of Entry for day.</param>
-    /// <param name="xPosition">X axis offset for day start position.</param>
-    private void CreatePoints(List<Entry> dayEntries, int xPosition)
+    /// <param name="dayIndex">X axis offset for day start position.</param>
+    private void CreatePoints(List<Entry> dayEntries, int dayIndex)
     {
         foreach (Entry entry in dayEntries)
         {
@@ -160,10 +161,7 @@ public class Graph : MonoBehaviour
                                     : (float)provincial[entry.province].maxValues[dataType]
                                 : chartHeight;
 
-            // TODO
-            // the 280f is to scale numbers to fit vertically on a 16:9 screen
-            // should be relational to days.Count
-            float modifier = 340f / maxValue;
+            float verticalModifier = 335f / maxValue;
 
             Transform parent = provincial[entry.province].provincialNode.transform;
             Transform point = Instantiate(settings.pointPrefab);
@@ -171,20 +169,23 @@ public class Graph : MonoBehaviour
             point.name = $"{entry.dateString}";
             point.GetComponent<MeshRenderer>().material.color = provincial[entry.province].color; //colorMap[entry.province];
 
+            float xPosition = dayIndex * horizontalModifier;
+
             float position = (settings.normalizeByPopulation)
                 ? (float)entry.values[dataType] / (float)provincial[entry.province].population * 100000f
                 : entry.values[dataType];
 
-            float yPosition = position * modifier;
+            float yPosition = position * verticalModifier;
 
             int zPosition = provincial[entry.province].displayIndex;
 
-            // if (!logarithmic) {
-            point.localPosition = new Vector3(xPosition, yPosition, zPosition); //0); //dayIndex * 2);
+            // if (!logarithmic)
+            // {
+            //     ?
             // }
             // else
             // {
-            //     ?
+                point.localPosition = new Vector3(xPosition, yPosition, zPosition);
             // }
 
             DataPoint entryDataPoint = point.GetComponent<DataPoint>();
@@ -242,15 +243,12 @@ public class Graph : MonoBehaviour
             provincial.Add(province.Key, nextProvince);
             index++;
         }
-
-        // set data ready
-        dataReady = true;
     }
 
     /// <summary>
     /// Find max chart data for scaling data.
     /// </summary>
-    private void SetChartHeight()
+    private void SetChartDimensions()
     {
         string dataType = settings.whichData.ToString();
 
@@ -266,5 +264,10 @@ public class Graph : MonoBehaviour
                             : provincial.Select(x => x.Value).Max(x => x.maxValues[dataType]);
 
         Debug.Log($"chartHeight: {chartHeight}");
+
+        // set height modifier
+        horizontalModifier = 550f / days.Count();
+
+        Debug.Log($"chartHeight: {horizontalModifier}");
     }
 }
