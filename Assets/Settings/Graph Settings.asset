@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pointPrefab: {fileID: 1180603350697884296, guid: ccab3aeb62d160fcbbc8f1a890698c0f,
     type: 3}
-  delay: 0.05
-  whichData: 2
+  delay: 0.01
+  whichData: 0
   relativeCharting: 0
   excludeCanada: 1
   normalizeByPopulation: 1
