@@ -43,11 +43,13 @@ public class Province
         {
             maxValues.Add(
                 type,
-                this.points.Max(x => x.values[type]));
+                this.points.Max(x => x.values[type])
+            );
 
             maxValuesNormalized.Add(
                 type,
-                (float)this.maxValues[type] / (float)this.population * 100000f);
+                (float)this.maxValues[type] / (float)this.population * 100000f
+            );
         }
     }
 }
