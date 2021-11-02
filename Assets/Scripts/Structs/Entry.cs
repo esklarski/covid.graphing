@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
+// using System.Diagnostics;
 
 /// <summary>
 /// Object to store individual entry data.
@@ -19,6 +21,8 @@ public struct Entry
 
     public Entry(string[] parts)
     {
+        // ignore country column (parts[0])
+
         this.province = parts[1];
 
         this.values = new Dictionary<string, int>
